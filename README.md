@@ -230,7 +230,7 @@ The release above is the `Dataset/01 Full Dataset/` folder of this repository. A
 │
 ├── Notebooks/
 │   ├── train_yolo.py                        # train YOLO n/s/m/l/x at 640, both label spaces
-│   ├── train_yolo.ipynb                     # the same as a notebook, with result plots
+│   ├── 02_yolo_training.ipynb                     # the same as a notebook, with result plots
 │   └── render_previews.py                   # draws the preview sheets above from the label files
 │
 ├── previews/                                # the illustration images used in this README
@@ -292,36 +292,28 @@ print(len(coco.getImgIds()), "images,", len(coco.getAnnIds()), "objects")
 
 ### Ultralytics YOLO
 
-Ultralytics finds the label of every image by replacing `images` with `labels` in its path, so it needs a folder where `images/` and `labels/` sit side by side. With the shared `images/` folder that pair does not exist on disk, and there are two ways to provide it, neither of which copies a photo:
+Ultralytics finds the label of every image by replacing `images` with `labels` in the image folder's path, so next to the shared `images/` folder it looks for a `labels/` folder, and the dataset keeps those inside each label space instead. Two ways to bridge that, neither of which copies a photo:
 
-- **Use the baseline script or notebook** (next section). Before every run it links `images/` and the chosen label space's `labels/` into `runs/workspace/<space>/`, writes a `data.yaml` there and trains from it. Nothing to set up.
-- **Do it once by hand** for the `yolo` command line. Create a folder with two links and a yaml, then train as usual:
+- **Use the baseline script or notebook** (next section). Before every run it builds `runs/workspace/<space>/` with one hard link (or symlink) per image and label file, writes a `data.yaml` there and trains from it. Nothing to set up, and it also works where the dataset folder is read-only, such as Kaggle.
+- **One link, for the `yolo` command line.** From `<dataset_root>` create a `labels` link that points at the label space you want. Ultralytics then finds `labels/<split>/` next to `images/<split>/`, and the shipped `data.yaml` works as is:
 
   ```bash
   # Windows (cmd, no admin rights needed)
-  mkdir ws\multi
-  mklink /J ws\multi\images "path\to\dataset\images"
-  mklink /J ws\multi\labels "path\to\dataset\multi class\labels"
-  copy "path\to\dataset\multi class\data.yaml" ws\multi\data.yaml
+  mklink /J labels "multi class\labels"
 
   # Linux / macOS
-  mkdir -p ws/multi
-  ln -s "path/to/dataset/images"              ws/multi/images
-  ln -s "path/to/dataset/multi class/labels"  ws/multi/labels
-  cp    "path/to/dataset/multi class/data.yaml" ws/multi/data.yaml
+  ln -s "multi class/labels" labels
   ```
-
-  In the copied `data.yaml` change `../images/train` to `images/train` (and the same for val and test), then:
 
   ```bash
-  yolo detect train data=ws/multi/data.yaml model=yolo11n.pt imgsz=640 epochs=100
+  yolo detect train data="multi class/data.yaml" model=yolo11n.pt imgsz=640 epochs=100
   ```
 
-  Repeat with `single class` for the single-class baseline.
+  To train the single-class baseline remove the link (`rmdir labels` on Windows, `rm labels` elsewhere; this never touches the target) and create it again pointing at `single class\labels`. The link is a one-line, zero-byte bridge; it is not part of the release and the `.gitignore` of the repository keeps the whole dataset folder out of git anyway.
 
 ### Baseline script and notebook
 
-The repository ships `train_yolo.py` and `train_yolo.ipynb` in its `Notebooks/` folder. Both train one detector per (label space, model size) pair at `imgsz=640`, evaluate every best checkpoint on the **test** split and collect the results in one table, so the single-class and multi-class baselines are produced under identical settings.
+The repository ships `train_yolo.py` and `02_yolo_training.ipynb` in its `Notebooks/` folder. Both train one detector per (label space, model size) pair at `imgsz=640`, evaluate every best checkpoint on the **test** split and collect the results in one table, so the single-class and multi-class baselines are produced under identical settings.
 
 | | |
 |:--|:--|
@@ -408,7 +400,7 @@ Code, issues and updates live on GitHub:
 The repository contains:
 
 - `Dataset/02 Label Studio Project Files/`: the labelling configuration (`annotation_configuration.xml`), the reviewed Label Studio export (`annotation_project_export.json`) and the conversion notebook (`yolo_coco_dataset_creation.ipynb`) that turns the reviewed polygons into the YOLO and COCO release
-- `Notebooks/train_yolo.py` and `Notebooks/train_yolo.ipynb`: the baseline training script and notebook described under [Training](#-training), which train YOLO `n`, `s`, `m`, `l` and `x` at 640 on both label spaces and evaluate them on the test split
+- `Notebooks/train_yolo.py` and `Notebooks/02_yolo_training.ipynb`: the baseline training script and notebook described under [Training](#-training), which train YOLO `n`, `s`, `m`, `l` and `x` at 640 on both label spaces and evaluate them on the test split
 - `Notebooks/render_previews.py`: the script that draws the sample overlays in [`previews/`](previews/) from the shipped label files
 - `previews/`: the comparison sheets, single panels and full-resolution originals shown on this page
 - `Website/` and `Design Assets/`: the project website and the logo, launch image and fonts
