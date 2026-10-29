@@ -217,30 +217,28 @@ Every path inside a `data.yaml` is relative to the folder that contains it (`tra
 
 ### Repository layout
 
-The release above is the `Dataset/01 Full Dataset/` folder of this repository. Around it the repository holds the Label Studio sources the labels were made from, the training code, the preview images used on this page, the project website and the design assets:
+The release above is the `Dataset/01 Full Dataset/` folder of a local checkout of this repository. Around it sit the training notebook, the preview images used on this page and the project website. This is the full local layout:
 
 ```
 <repository_root>/
-├── Dataset/
-│   ├── 01 Full Dataset/                     # <dataset_root>, the release shown above (not in git, see below)
-│   └── 02 Label Studio Project Files/
-│       ├── annotation_configuration.xml     # Label Studio labelling interface
-│       ├── annotation_project_export.json   # reviewed polygons, Label Studio export
-│       └── yolo_coco_dataset_creation.ipynb # export → split → YOLO boxes + COCO polygons
+├── Dataset/                                 # not in git (.gitignore)
+│   ├── 01 Full Dataset/                     #   <dataset_root>, the release shown above
+│   └── 02 Label Studio Project Files/       #   labelling sources, kept locally
+│       ├── annotation_configuration.xml     #     Label Studio labelling interface
+│       ├── annotation_project_export.json   #     reviewed polygons, Label Studio export
+│       └── yolo_coco_dataset_creation.ipynb #     export → split → YOLO boxes + COCO polygons
 │
 ├── Notebooks/
-│   ├── train_yolo.py                        # train YOLO n/s/m/l/x at 640, both label spaces
-│   ├── 02_yolo_training.ipynb                     # the same as a notebook, with result plots
-│   └── render_previews.py                   # draws the preview sheets above from the label files
+│   └── 02_yolo_training.ipynb               # train YOLO n/s/m/l/x at 640, both label spaces
 │
 ├── previews/                                # the illustration images used in this README
 ├── Website/                                 # project website: index.html, style.css, script.js, assets/
-├── Design Assets/                           # logo (AI + SVG), launch image, fonts
-├── .gitignore                               # keeps Dataset/01 Full Dataset (5 GB of photos) out of git
+├── Design Assets/                           # logo, launch image, fonts; not in git (.gitignore)
+├── .gitignore                               # excludes Dataset/ and Design Assets/
 └── README.md                                # this file
 ```
 
-The photos and labels are **not committed to git**. Download the release from one of the mirrors listed under [Where the dataset is shared](#-where-the-dataset-is-shared) and unpack it as `Dataset/01 Full Dataset/`. The training files resolve the dataset relative to their own location, so once it is in place the repository trains without editing a single path.
+`Dataset/` and `Design Assets/` are listed in `.gitignore`, so a clone contains the README, the notebook, the previews and the website only. Download the release from one of the mirrors listed under [Where the dataset is shared](#-where-the-dataset-is-shared) and unpack it as `Dataset/01 Full Dataset/`. The notebook resolves the dataset relative to its own folder, so once the release is in place it trains without editing a path.
 
 A label file and a COCO entry exist for every image in every split, in both label spaces. `trash (N).txt` in `single class/labels/train/` and in `multi class/labels/train/` describe the same boxes on the same photo; only the class ids differ.
 
@@ -294,7 +292,7 @@ print(len(coco.getImgIds()), "images,", len(coco.getAnnIds()), "objects")
 
 Ultralytics finds the label of every image by replacing `images` with `labels` in the image folder's path, so next to the shared `images/` folder it looks for a `labels/` folder, and the dataset keeps those inside each label space instead. Two ways to bridge that, neither of which copies a photo:
 
-- **Use the baseline script or notebook** (next section). Before every run it builds `runs/workspace/<space>/` with one hard link (or symlink) per image and label file, writes a `data.yaml` there and trains from it. Nothing to set up, and it also works where the dataset folder is read-only, such as Kaggle.
+- **Use the training notebook** (next section). Before every run it builds `runs/workspace/<space>/` with one hard link (or symlink) per image and label file, writes a `data.yaml` there and trains from it. Nothing to set up, and it also works where the dataset folder is read-only, such as Kaggle.
 - **One link, for the `yolo` command line.** From `<dataset_root>` create a `labels` link that points at the label space you want. Ultralytics then finds `labels/<split>/` next to `images/<split>/`, and the shipped `data.yaml` works as is:
 
   ```bash
@@ -311,30 +309,20 @@ Ultralytics finds the label of every image by replacing `images` with `labels` i
 
   To train the single-class baseline remove the link (`rmdir labels` on Windows, `rm labels` elsewhere; this never touches the target) and create it again pointing at `single class\labels`. The link is a one-line, zero-byte bridge; it is not part of the release and the `.gitignore` of the repository keeps the whole dataset folder out of git anyway.
 
-### Baseline script and notebook
+### Baseline notebook
 
-The repository ships `train_yolo.py` and `02_yolo_training.ipynb` in its `Notebooks/` folder. Both train one detector per (label space, model size) pair at `imgsz=640`, evaluate every best checkpoint on the **test** split and collect the results in one table, so the single-class and multi-class baselines are produced under identical settings.
+The repository ships [`Notebooks/02_yolo_training.ipynb`](Notebooks/02_yolo_training.ipynb). It trains one detector per (label space, model size) pair at `imgsz=640`, evaluates every best checkpoint on the **test** split and collects the results in one table, so the single-class and multi-class baselines are produced under identical settings. Everything is set in its first code cell:
 
 | | |
 |:--|:--|
 | **Label spaces** | `single class`, `multi class` (default: both) |
-| **Model sizes** | `n`, `s`, `m`, `l`, `x` (default: all five; `xl` is accepted as an alias of `x`) |
-| **Family** | YOLO11 by default, `--family yolov8` or `yolo12` to switch |
+| **Model sizes** | `n`, `s`, `m`, `l`, `x` (default: all five) |
+| **Family** | YOLO11 by default; set `FAMILY` to `yolov8` or `yolo12` to switch |
 | **Settings** | 640 px, 100 epochs, early stopping after 30 epochs without improvement, seed 42, auto batch size |
+| **Dataset location** | `Dataset/01 Full Dataset` next to `Notebooks/`; change `DATASET_ROOT` if the release lives elsewhere, for example `/kaggle/input/<dataset-slug>` |
 | **Outputs** | `runs/detect/<space>_<model>/` with weights, curves and confusion matrices, `runs/detect/<space>_<model>_test/` with the test evaluation, and `runs/detect/summary.csv` + `summary.md` with parameters, test mAP50-95, mAP50, precision, recall and inference time per run |
 
-```bash
-# all ten baselines: 2 label spaces x 5 sizes
-python Notebooks/train_yolo.py
-
-# a subset, with a fixed batch size for a small GPU
-python Notebooks/train_yolo.py --space multi --sizes n s m --epochs 100 --batch 8
-
-# dataset unpacked somewhere else (Kaggle, a shared drive, ...)
-python Notebooks/train_yolo.py --dataset-root "/kaggle/input/<dataset-slug>" --project /kaggle/working/runs
-```
-
-`--skip-existing` skips runs whose `best.pt` already exists and `--resume` continues interrupted runs from their `last.pt`, so the full sweep can be run in several sessions. The summary table is rewritten after every run, so an interrupted sweep still leaves a complete table for the runs that finished. The notebook exposes the same options in its first code cell and adds a results table, a test-mAP-against-parameters plot, the training curves of any run and a few test predictions.
+Runs whose `best.pt` already exists are skipped, so the sweep can be continued in later sessions, and the summary table is rewritten after every run, so an interrupted sweep still leaves a complete table for the runs that finished. The later cells show the results table, a test-mAP-against-parameters plot, the training curves of any run and a few test predictions.
 
 For segmentation training convert the COCO polygons to YOLO segment labels, for example with `ultralytics.data.converter.convert_coco`.
 
@@ -399,13 +387,12 @@ Code, issues and updates live on GitHub:
 
 The repository contains:
 
-- `Dataset/02 Label Studio Project Files/`: the labelling configuration (`annotation_configuration.xml`), the reviewed Label Studio export (`annotation_project_export.json`) and the conversion notebook (`yolo_coco_dataset_creation.ipynb`) that turns the reviewed polygons into the YOLO and COCO release
-- `Notebooks/train_yolo.py` and `Notebooks/02_yolo_training.ipynb`: the baseline training script and notebook described under [Training](#-training), which train YOLO `n`, `s`, `m`, `l` and `x` at 640 on both label spaces and evaluate them on the test split
-- `Notebooks/render_previews.py`: the script that draws the sample overlays in [`previews/`](previews/) from the shipped label files
-- `previews/`: the comparison sheets, single panels and full-resolution originals shown on this page
-- `Website/` and `Design Assets/`: the project website and the logo, launch image and fonts
-- the dataset release itself is not in git; it is downloaded from the mirrors above into `Dataset/01 Full Dataset/`
+- `Notebooks/02_yolo_training.ipynb`: the baseline training notebook described under [Training](#-training), which trains YOLO `n`, `s`, `m`, `l` and `x` at 640 on both label spaces and evaluates them on the test split
+- `previews/`: the comparison sheets, single panels and full-resolution originals shown on this page, drawn from the shipped label files
+- `Website/`: the project website
 - baseline results as they are added
+
+Not in the repository: the dataset release itself, which is downloaded from the mirrors above into `Dataset/01 Full Dataset/`, the Label Studio labelling sources and the design assets.
 
 Found a wrong label or a missed object? Please open an issue there with the image name, for example `trash (362).jpg`, and a short description.
 
