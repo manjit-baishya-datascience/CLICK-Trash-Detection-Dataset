@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICK — Open trash detection dataset</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS v4 (browser build, no install needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- Your colors and fonts. Edit them here. -->
+  <style type="text/tailwindcss">
+    @theme {
+      --color-canvas: #f4f1e8;
+      --color-ink: #16201b;
+      --color-forest: #163d2e;
+      --color-orange: #f15a36;
+      --color-lime: #c8f467;
+      --color-sky: #7bc8e6;
+      --color-purple: #b69ce8;
+      --font-sans: "Manrope", sans-serif;
+      --font-mono: "Space Mono", monospace;
+    }
+  </style>
+
+  <!-- Your own CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Icon sprite: use with <svg><use href="#i-name"/></svg> -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-arrow"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></symbol>
+    <symbol id="i-download"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></symbol>
+    <symbol id="i-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.3 4 5 5 0 0 0 19.2.5S18 0 15 2a13.4 13.4 0 0 0-7 0C5-.1 3.8.5 3.8.5A5 5 0 0 0 3.7 4a5.4 5.4 0 0 0-1.5 3.7c0 5.4 3.5 6.5 6.8 7A4.8 4.8 0 0 0 8 18v4" /></symbol>
+    <symbol id="i-menu"><path d="M4 7h16" /><path d="M4 17h16" /></symbol>
+    <symbol id="i-x"><path d="m6 6 12 12" /><path d="m18 6-12 12" /></symbol>
+    <symbol id="i-external"><path d="M15 4h5v5" /><path d="M10 14 20 4" /><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6" /></symbol>
+  </svg>
+
+  <div class="min-h-screen overflow-hidden bg-canvas text-ink">
+
+    <!-- ===== HEADER ===== -->
+    <header id="site-header" class="fixed inset-x-0 top-0 z-50 bg-transparent transition-all duration-300">
+      <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
+        <a href="#" class="group flex items-center gap-3">
+          <span class="grid h-9 w-9 place-items-center rounded-full bg-forest text-lime transition-transform group-hover:rotate-12">
+            <span class="text-lg font-black">C</span>
+          </span>
+          <span class="text-sm font-extrabold uppercase tracking-[0.2em]">CLICK</span>
+        </a>
+
+        <nav class="hidden items-center gap-8 md:flex" aria-label="Primary navigation">
+          <a href="#about" class="text-sm font-bold text-ink/70 transition-colors hover:text-orange">About</a>
+          <a href="#explore" class="text-sm font-bold text-ink/70 transition-colors hover:text-orange">Explore</a>
+          <a href="#dataset" class="text-sm font-bold text-ink/70 transition-colors hover:text-orange">Dataset</a>
+          <a href="#research" class="text-sm font-bold text-ink/70 transition-colors hover:text-orange">Research</a>
+        </nav>
+
+        <div class="hidden items-center gap-3 md:flex">
+          <a href="#research" class="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-forest transition-colors hover:bg-forest/5">
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-github"/></svg>
+            GitHub
+          </a>
+          <a href="#download" class="flex items-center gap-2 rounded-full bg-orange px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-orange/20 transition-all hover:-translate-y-0.5 hover:bg-forest">
+            Get the data
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-arrow"/></svg>
+          </a>
+        </div>
+
+        <button id="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" class="grid h-11 w-11 place-items-center rounded-full border border-forest/20 text-forest md:hidden">
+          <span id="icon-menu"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-menu"/></svg></span>
+          <span id="icon-close" class="hidden"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-x"/></svg></span>
+        </button>
+      </div>
+
+      <nav id="mobile-menu" class="hidden border-t border-forest/10 bg-canvas px-5 py-5 md:hidden" aria-label="Mobile navigation">
+        <div class="flex flex-col gap-1">
+        <a href="#about" class="rounded-xl px-3 py-3 font-bold hover:bg-forest/5">About</a>
+        <a href="#explore" class="rounded-xl px-3 py-3 font-bold hover:bg-forest/5">Explore</a>
+        <a href="#dataset" class="rounded-xl px-3 py-3 font-bold hover:bg-forest/5">Dataset</a>
+        <a href="#research" class="rounded-xl px-3 py-3 font-bold hover:bg-forest/5">Research</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+
+      <!-- ===== HERO ===== -->
+      <section class="relative border-b border-forest/10 pb-24 pt-32 lg:pb-28 lg:pt-40">
+        <div class="pointer-events-none absolute -left-36 top-64 h-80 w-80 rounded-full border-[60px] border-lime/50"></div>
+        <div class="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-8">
+          <div class="relative z-10">
+            <div class="mb-5 flex items-center gap-3 font-mono text-xs font-bold uppercase tracking-[0.18em] text-forest">
+              <span class="h-px w-7 bg-orange"></span>
+              Open dataset · v2.1
+            </div>
+            <h1 class="max-w-3xl text-balance text-6xl font-black leading-[0.9] tracking-[-0.065em] text-forest sm:text-7xl lg:text-[6.5rem]">
+              Teaching machines to see <span class="text-orange">waste.</span>
+            </h1>
+            <p class="mt-8 max-w-xl text-lg font-medium leading-relaxed text-ink/65 sm:text-xl">
+              A growing, community-built image dataset for detecting litter in the wild—from city
+              streets to remote coastlines.
+            </p>
+            <div class="mt-10 flex flex-wrap gap-3">
+              <a href="#explore" class="group flex items-center gap-3 rounded-full bg-forest px-6 py-4 text-sm font-extrabold text-white transition-all hover:-translate-y-0.5 hover:bg-orange">
+                Explore the dataset
+                <span class="grid h-7 w-7 place-items-center rounded-full bg-white/15"><svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-arrow"/></svg></span>
+              </a>
+              <a href="#about" class="flex items-center rounded-full border border-forest/25 px-6 py-4 text-sm font-extrabold text-forest transition-colors hover:border-forest hover:bg-white">
+                Read our story
+              </a>
+            </div>
+            <div class="mt-12 flex items-center gap-6 border-t border-forest/15 pt-6">
+              <div class="flex -space-x-2">
+          <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-canvas bg-orange text-xs font-black text-forest">ML</span>
+          <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-canvas bg-sky text-xs font-black text-forest">CV</span>
+          <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-canvas bg-lime text-xs font-black text-forest">AI</span>
+          <span class="grid h-9 w-9 place-items-center rounded-full border-2 border-canvas bg-purple text-xs font-black text-white">+</span>
+              </div>
+              <p class="text-sm font-semibold leading-snug text-ink/60">
+                Built by 1,200+ contributors<br />across 26 countries
+              </p>
+            </div>
+          </div>
+
+          <div class="relative mx-auto w-full max-w-3xl lg:ml-4">
+            <div class="relative aspect-video overflow-hidden rounded-[2.5rem] bg-forest shadow-2xl shadow-forest/20">
+              <!-- Replace this URL with your own hero image or GIF -->
+              <img class="h-full w-full object-cover" src="https://images.unsplash.com/photo-1526951521990-620dc14c214b?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=1800" alt="Plastic waste and seaweed scattered across a tropical beach" />
+              <div class="absolute inset-0 bg-gradient-to-t from-forest/55 via-transparent to-transparent"></div>
+              <div class="absolute left-[16%] top-[34%] h-[28%] w-[32%] border-2 border-lime">
+                <span class="absolute -top-7 left-0 bg-lime px-2 py-1 font-mono text-[10px] font-bold text-forest">PLASTIC_FILM · 0.94</span>
+                <span class="absolute -right-1 -top-1 h-2 w-2 bg-lime"></span>
+                <span class="absolute -bottom-1 -left-1 h-2 w-2 bg-lime"></span>
+              </div>
+              <div class="absolute bottom-6 left-6 right-6 flex items-end justify-between text-white">
+                <div>
+                  <p class="font-mono text-[10px] uppercase tracking-widest text-lime">Sample 08,401</p>
+                  <p class="mt-1 text-sm font-bold">Santa Teresa, Costa Rica</p>
+                </div>
+                <span class="rounded-full border border-white/30 bg-black/20 px-3 py-1.5 font-mono text-[10px] backdrop-blur">11 objects</span>
+              </div>
+            </div>
+            <div class="absolute -right-4 top-12 rounded-2xl bg-lime p-5 text-forest shadow-xl sm:-right-8">
+              <p class="font-mono text-[10px] font-bold uppercase tracking-widest">Annotated</p>
+              <p class="mt-1 text-3xl font-black tracking-tight">96.4%</p>
+            </div>
+            <div class="absolute -bottom-7 -left-4 max-w-56 rotate-[-2deg] rounded-2xl bg-white p-5 shadow-xl sm:-left-10">
+              <p class="font-mono text-[10px] font-bold uppercase tracking-widest text-orange">Field note 024</p>
+              <p class="mt-2 text-sm font-bold leading-snug text-forest">Real litter. Real places. Better detection.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== STATS ===== -->
+      <section class="bg-forest py-10 text-white" aria-label="Dataset highlights">
+        <div class="mx-auto grid max-w-7xl grid-cols-2 gap-y-8 px-5 lg:grid-cols-4 lg:px-8">
+      <div class="px-4 first:pl-0 lg:px-8">
+        <p class="text-3xl font-black tracking-tight text-lime sm:text-4xl">14,320</p>
+        <p class="mt-1 text-sm font-semibold text-white/55">Images in the wild</p>
+      </div>
+      <div class="px-4 first:pl-0 lg:px-8 border-l border-white/15">
+        <p class="text-3xl font-black tracking-tight text-lime sm:text-4xl">52,841</p>
+        <p class="mt-1 text-sm font-semibold text-white/55">Labeled objects</p>
+      </div>
+      <div class="px-4 first:pl-0 lg:px-8 border-l border-white/15">
+        <p class="text-3xl font-black tracking-tight text-lime sm:text-4xl">60</p>
+        <p class="mt-1 text-sm font-semibold text-white/55">Trash categories</p>
+      </div>
+      <div class="px-4 first:pl-0 lg:px-8 border-l border-white/15">
+        <p class="text-3xl font-black tracking-tight text-lime sm:text-4xl">26</p>
+        <p class="mt-1 text-sm font-semibold text-white/55">Countries covered</p>
+      </div>
+        </div>
+      </section>
+
+      <!-- ===== ABOUT ===== -->
+      <section id="about" class="relative py-28 sm:py-36">
+        <div class="mx-auto grid max-w-7xl gap-16 px-5 lg:grid-cols-2 lg:px-8">
+          <div>
+            <div class="mb-5 flex items-center gap-3 font-mono text-xs font-bold uppercase tracking-[0.18em] text-forest">
+              <span class="h-px w-7 bg-orange"></span>
+              Why this matters
+            </div>
+            <h2 class="max-w-xl text-5xl font-black leading-[0.98] tracking-[-0.05em] text-forest sm:text-6xl">
+              You can’t clean up what you can’t see.
+            </h2>
+          </div>
+          <div class="lg:pt-10">
+            <p class="max-w-xl text-2xl font-bold leading-snug text-forest">
+              Waste is everywhere—but reliable, diverse training data isn’t.
+            </p>
+            <p class="mt-6 max-w-xl text-base font-medium leading-8 text-ink/60">
+              CLICK helps researchers build computer vision systems that work beyond the lab.
+              Every image is captured in a real environment, carefully reviewed, and labeled using a
+              consistent taxonomy.
+            </p>
+            <a href="#research" class="mt-8 inline-flex items-center gap-3 border-b-2 border-orange pb-2 text-sm font-extrabold text-forest transition-all hover:gap-5">
+              How we collect and verify data
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-arrow"/></svg>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== EXPLORE ===== -->
+      <section id="explore" class="bg-white py-24 sm:py-32">
+        <div class="mx-auto max-w-7xl px-5 lg:px-8">
+          <div class="flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
+            <div>
+              <div class="mb-5 flex items-center gap-3 font-mono text-xs font-bold uppercase tracking-[0.18em] text-forest">
+              <span class="h-px w-7 bg-orange"></span>
+              Inside the dataset
+            </div>
+              <h2 class="text-5xl font-black tracking-[-0.05em] text-forest sm:text-6xl">
+                Messy by nature.<br />Useful by design.
+              </h2>
+            </div>
+            <p class="max-w-sm text-base font-medium leading-7 text-ink/55">
+              Explore examples from urban, coastal, and rural environments—annotated down to every
+              bottle cap and wrapper.
+            </p>
+          </div>
+
+          <div class="mt-14 grid gap-4 md:grid-cols-3">
+        <article class="group relative overflow-hidden rounded-3xl bg-forest">
+          <div class="aspect-square overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1565803974275-dccd2f933cbb?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=900" alt="Volunteers collecting waste along a beach" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          </div>
+          <div class="absolute border-2 border-lime left-[20%] top-[28%] h-[34%] w-[28%]">
+            <span class="absolute -top-6 left-0 bg-lime px-2 py-1 font-mono text-[9px] font-black uppercase text-forest">plastic bag</span>
+          </div>
+          <div class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-forest/90 to-transparent px-5 pb-5 pt-16 text-white">
+            <span class="font-mono text-[10px] font-bold uppercase tracking-widest">Set 01</span>
+            <span class="rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold backdrop-blur">View labels</span>
+          </div>
+        </article>
+        <article class="group relative overflow-hidden rounded-3xl bg-forest md:translate-y-8">
+          <div class="aspect-square overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1610093641855-31ffd617a94a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=900" alt="Volunteer holding a collected plastic bottle" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          </div>
+          <div class="absolute border-2 border-lime left-[34%] top-[16%] h-[54%] w-[30%]">
+            <span class="absolute -top-6 left-0 bg-lime px-2 py-1 font-mono text-[9px] font-black uppercase text-forest">bottle</span>
+          </div>
+          <div class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-forest/90 to-transparent px-5 pb-5 pt-16 text-white">
+            <span class="font-mono text-[10px] font-bold uppercase tracking-widest">Set 02</span>
+            <span class="rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold backdrop-blur">View labels</span>
+          </div>
+        </article>
+        <article class="group relative overflow-hidden rounded-3xl bg-forest">
+          <div class="aspect-square overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1617953141905-b27fb1f17d88?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=900" alt="Community cleanup on a beach" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          </div>
+          <div class="absolute border-2 border-lime left-[12%] top-[48%] h-[26%] w-[46%]">
+            <span class="absolute -top-6 left-0 bg-lime px-2 py-1 font-mono text-[9px] font-black uppercase text-forest">mixed waste</span>
+          </div>
+          <div class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-forest/90 to-transparent px-5 pb-5 pt-16 text-white">
+            <span class="font-mono text-[10px] font-bold uppercase tracking-widest">Set 03</span>
+            <span class="rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold backdrop-blur">View labels</span>
+          </div>
+        </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== DATASET ===== -->
+      <section id="dataset" class="py-28 sm:py-36">
+        <div class="mx-auto grid max-w-7xl gap-16 px-5 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
+          <div>
+            <div class="mb-5 flex items-center gap-3 font-mono text-xs font-bold uppercase tracking-[0.18em] text-forest">
+              <span class="h-px w-7 bg-orange"></span>
+              Category mix
+            </div>
+            <h2 class="text-5xl font-black tracking-[-0.05em] text-forest sm:text-6xl">
+              What’s in the <span class="text-orange">bag?</span>
+            </h2>
+            <p class="mt-6 max-w-md text-base font-medium leading-7 text-ink/60">
+              The long-tail distribution reflects the waste found in everyday environments. Class
+              weights and complete taxonomy are included in the release.
+            </p>
+          </div>
+          <div class="rounded-[2rem] bg-forest p-6 text-white sm:p-10">
+            <div class="mb-10 flex items-center justify-between border-b border-white/15 pb-5">
+              <p class="font-mono text-xs font-bold uppercase tracking-widest text-white/50">Object distribution</p>
+              <p class="font-mono text-xs text-lime">n = 52,841</p>
+            </div>
+            <div class="space-y-6">
+            <div class="grid grid-cols-[84px_1fr_40px] items-center gap-4">
+              <span class="text-sm font-bold">Plastic</span>
+              <div class="h-8 overflow-hidden rounded-full bg-white/10">
+                <div class="chart-bar h-full rounded-full bg-orange" style="--bar-width: 92%; --delay: 0ms"></div>
+              </div>
+              <span class="font-mono text-xs text-white/60">46%</span>
+            </div>
+            <div class="grid grid-cols-[84px_1fr_40px] items-center gap-4">
+              <span class="text-sm font-bold">Paper</span>
+              <div class="h-8 overflow-hidden rounded-full bg-white/10">
+                <div class="chart-bar h-full rounded-full bg-lime" style="--bar-width: 42%; --delay: 100ms"></div>
+              </div>
+              <span class="font-mono text-xs text-white/60">21%</span>
+            </div>
+            <div class="grid grid-cols-[84px_1fr_40px] items-center gap-4">
+              <span class="text-sm font-bold">Metal</span>
+              <div class="h-8 overflow-hidden rounded-full bg-white/10">
+                <div class="chart-bar h-full rounded-full bg-sky" style="--bar-width: 30%; --delay: 200ms"></div>
+              </div>
+              <span class="font-mono text-xs text-white/60">15%</span>
+            </div>
+            <div class="grid grid-cols-[84px_1fr_40px] items-center gap-4">
+              <span class="text-sm font-bold">Glass</span>
+              <div class="h-8 overflow-hidden rounded-full bg-white/10">
+                <div class="chart-bar h-full rounded-full bg-purple" style="--bar-width: 22%; --delay: 300ms"></div>
+              </div>
+              <span class="font-mono text-xs text-white/60">11%</span>
+            </div>
+            <div class="grid grid-cols-[84px_1fr_40px] items-center gap-4">
+              <span class="text-sm font-bold">Other</span>
+              <div class="h-8 overflow-hidden rounded-full bg-white/10">
+                <div class="chart-bar h-full rounded-full bg-stone-400" style="--bar-width: 14%; --delay: 400ms"></div>
+              </div>
+              <span class="font-mono text-xs text-white/60">7%</span>
+            </div>
+            </div>
+            <div class="mt-10 grid grid-cols-2 gap-3 border-t border-white/15 pt-7 sm:grid-cols-3">
+            <div class="rounded-xl bg-white/5 px-4 py-3 font-mono text-xs font-bold text-lime">60 classes</div>
+            <div class="rounded-xl bg-white/5 px-4 py-3 font-mono text-xs font-bold text-lime">COCO format</div>
+            <div class="rounded-xl bg-white/5 px-4 py-3 font-mono text-xs font-bold text-lime">CC BY 4.0</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== RESEARCH ===== -->
+      <section id="research" class="bg-orange py-24 text-white sm:py-32">
+        <div class="mx-auto max-w-7xl px-5 lg:px-8">
+          <div class="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+            <div>
+              <div class="mb-5 flex items-center gap-3 font-mono text-xs font-bold uppercase tracking-[0.18em] text-lime">
+              <span class="h-px w-7 bg-lime"></span>
+              Made for researchers
+            </div>
+              <h2 class="max-w-3xl text-5xl font-black leading-[0.95] tracking-[-0.055em] sm:text-7xl">
+                From open data to real-world impact.
+              </h2>
+            </div>
+            <div>
+              <p class="max-w-md text-lg font-semibold leading-8 text-white/80">
+                Benchmark your model, reproduce our baselines, or build the next generation of smart
+                cleanup tools.
+              </p>
+              <div class="mt-8 flex flex-wrap gap-3">
+                <a href="#download" class="flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-extrabold text-forest transition-transform hover:-translate-y-0.5">
+                  Documentation
+                  <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-external"/></svg>
+                </a>
+                <a href="#download" class="flex items-center gap-2 rounded-full border border-white/40 px-5 py-3 text-sm font-extrabold transition-colors hover:bg-white/10">
+                  View on GitHub
+                  <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-github"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== DOWNLOAD ===== -->
+      <section id="download" class="bg-lime py-24 sm:py-32">
+        <div class="mx-auto max-w-5xl px-5 text-center">
+          <span class="mx-auto mb-8 grid h-16 w-16 place-items-center rounded-full bg-forest text-lime">
+            <svg aria-hidden="true" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-download"/></svg>
+          </span>
+          <h2 class="text-5xl font-black leading-none tracking-[-0.055em] text-forest sm:text-7xl">Ready to dig in?</h2>
+          <p class="mx-auto mt-6 max-w-xl text-lg font-semibold leading-8 text-forest/65">
+            Download the full release, explore a lightweight sample, or read the annotation guide
+            before you begin.
+          </p>
+          <div class="mt-9 flex flex-wrap justify-center gap-3">
+            <a href="https://github.com/" class="flex items-center gap-3 rounded-full bg-forest px-7 py-4 text-sm font-extrabold text-white transition-all hover:-translate-y-0.5 hover:bg-orange">
+              Download dataset
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-download"/></svg>
+            </a>
+            <a href="#explore" class="rounded-full border border-forest/30 px-7 py-4 text-sm font-extrabold text-forest transition-colors hover:bg-white/50">
+              Browse sample
+            </a>
+          </div>
+          <p class="mt-5 font-mono text-[10px] font-bold uppercase tracking-widest text-forest/50">
+            Version 2.1 · 8.4 GB · Updated June 2025
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="bg-forest py-12 text-white">
+      <div class="mx-auto flex max-w-7xl flex-col gap-8 px-5 sm:flex-row sm:items-end sm:justify-between lg:px-8">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="grid h-9 w-9 place-items-center rounded-full bg-lime font-black text-forest">C</span>
+            <span class="text-sm font-extrabold uppercase tracking-[0.2em]">CLICK</span>
+          </div>
+          <p class="mt-4 max-w-sm text-sm font-medium leading-6 text-white/45">
+            An open trash detection dataset for a cleaner, more observable world.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-x-6 gap-y-3 font-mono text-xs font-bold uppercase tracking-widest text-white/55">
+          <a href="#about" class="hover:text-lime">About</a>
+          <a href="#research" class="hover:text-lime">Research</a>
+          <a href="#" class="hover:text-lime">License</a>
+          <a href="#" class="hover:text-lime">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
